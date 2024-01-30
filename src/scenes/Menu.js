@@ -7,6 +7,7 @@ class Menu extends Phaser.Scene {
         this.load.image('rocket', './assets/rocket.png')
         this.load.image('spaceship', './assets/spaceship.png')
         this.load.image('starfield', './assets/starfield.png')
+        this.load.image('supership', './assets/supership.png')
 
         //load spritesheet
         this.load.spritesheet('explosion', './assets/explosion.png', {
@@ -16,9 +17,21 @@ class Menu extends Phaser.Scene {
             endFrame: 9
         })
 
+        //load red spritesheet
+        this.load.spritesheet('explosion-red', './assets/explosion-red.png', {
+            frameWidth: 64,
+            frameHeight: 32,
+            startFrame: 0,
+            endFrame: 9
+        })
+
         //load audio
         this.load.audio('sfx-select', './assets/sfx-select.wav')
-        this.load.audio('sfx-explosion', './assets/sfx-explosion.wav')
+        this.load.audio('sfx-explosion0', './assets/sfx-explosion0.wav')
+        this.load.audio('sfx-explosion1', './assets/sfx-explosion1.wav')
+        this.load.audio('sfx-explosion2', './assets/sfx-explosion2.wav')
+        this.load.audio('sfx-explosion3', './assets/sfx-explosion3.wav')
+        this.load.audio('sfx-explosionS', './assets/sfx-explosionS.wav')
         this.load.audio('sfx-shot', './assets/sfx-shot.wav')
     }
 
@@ -27,6 +40,13 @@ class Menu extends Phaser.Scene {
         this.anims.create({
             key: 'explode',
             frames: this.anims.generateFrameNumbers('explosion', {start: 0, end: 9, first: 0}),
+            frameRate: 30
+        })
+
+        //alt animation
+        this.anims.create({
+            key: 'explode-red',
+            frames: this.anims.generateFrameNumbers('explode-red', {start: 0, end: 9, first: 0}),
             frameRate: 30
         })
 
@@ -59,6 +79,7 @@ class Menu extends Phaser.Scene {
             //easy mode
             game.settings = {
                 spaceshipSpeed: 3,
+                supershipSpeed: 4,
                 gameTimer: 60000
             }
             this.sound.play('sfx-select')
@@ -67,6 +88,7 @@ class Menu extends Phaser.Scene {
         if (Phaser.Input.Keyboard.JustDown(keyRIGHT)) {
             game.settings = {
                 spaceshipSpeed: 4,
+                supershipSpeed: 5,
                 gameTimer: 45000
             }
             this.sound.play('sfx-select')
