@@ -146,7 +146,7 @@ class Play extends Phaser.Scene {
             this.p1Streak = 0
             this.streakLeft.text = "Streak: "+this.p1Streak
             this.laserFiring = true
-            this.sound.play('sfx-laser')
+            this.sound.play('sfx-laser')  //maybe try getting the sound to loop and stop when the laser is done firing
             let laserSprite = this.add.sprite(game.config.width/2, (game.config.height/2)+17, 'laser')
             laserSprite.anims.play('laser-anim')
             this.laserClock = this.time.delayedCall(5000 + bonus, () => {
@@ -165,7 +165,7 @@ class Play extends Phaser.Scene {
         if(this.laserCollision(this.p1laser, this.ship01)) {
             this.shipExplode(this.ship01)
         }
-        if(this.laserCollision(this.p1laser, this.ship0X)) {
+        if(this.laserCollision(this.p1laser, this.ship0X)) {    //should the super ship be effected by the laser?
             this.supershipExplode(this.ship0X)
             
         }
@@ -214,16 +214,17 @@ class Play extends Phaser.Scene {
             boom.destroy()                      //remove explosion sprite
         })
         //particles emition
+        //particle emitter code from https://phaser.io/examples/v3/view/game-objects/particle-emitter/explode-emitter
         const emitter = this.add.particles(boom.x, boom.y, 'bit', {
             frame: 0,
-            lifespan: 4000,
+            lifespan: 3000,
             speed: {min: 150, max: 250},
             scale: {start: 0.8, end: 0},
             gravityY: 150,
             blendMode: 'ADD',
             emitting: false
         })
-        emitter.explode(6)
+        emitter.explode(5)
 
         //score add and text update
         this.p1Score += ship.points
