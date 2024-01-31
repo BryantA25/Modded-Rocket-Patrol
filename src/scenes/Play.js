@@ -59,20 +59,8 @@ class Play extends Phaser.Scene {
         //initialize streak
         this.p1Streak = 0
 
-        //display Streak *** CHANGE VALUES SO IT DOESN'T OVERLAP THE SCORE
-        let streakConfig = {
-            fontFamily: 'Courier',
-            fontSize: '28px',
-            backgroundColor: '#F3B141',
-            color: '#843605',
-            align: 'right',
-            padding: {
-                top: 5,
-                bottom: 5
-            },
-            fixedWidth: 100
-        }
-        this.streakLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*4, "Streak: "+this.p1Streak, this.streakConfig)
+        //display Streak
+        this.streakLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*4, "Streak: "+this.p1Streak, this.scoreConfig)
 
 
         //GAME OVER flag
@@ -86,24 +74,11 @@ class Play extends Phaser.Scene {
             this.gameOver = true
         }, null, this)
 
-
         //display clock
-        let clockConfig = {
-            fontFamily: 'Courier',
-            fontSize: '28px',
-            backgroundColor: '#F3B141',
-            color: '#843605',
-            align: 'right',
-            padding: {
-                top: 5,
-                bottom: 5
-            },
-            fixedWidth: 100
-        }
-        this.clockRight = this.add.text(borderUISize + borderPadding*35, borderUISize + borderPadding*2, this.currentTime, this.clockConfig)
+        this.clockRight = this.add.text(borderUISize + borderPadding*35, borderUISize + borderPadding*2, this.currentTime, this.scoreConfig)
 
         //laser status text
-        this.laserStatus = this.add.text(borderUISize + borderPadding*35, borderUISize + borderPadding*4, "", this.clockConfig)
+        this.laserStatus = this.add.text(borderUISize + borderPadding*35, borderUISize + borderPadding*4, "", this.scoreConfig)
     }
 
     update() {
@@ -124,8 +99,10 @@ class Play extends Phaser.Scene {
             this.scene.start("menuScene")
         }
 
+        //move background
         this.starfield.tilePositionX -= 4
 
+        //move rockets
         if(!this.gameOver){
             this.p1Rocket.update()  //update rocket sprite
             this.ship01.update()    //update spaceships (x3)
@@ -135,7 +112,7 @@ class Play extends Phaser.Scene {
             this.ship0X.update()
         }
 
-        //check collisions
+        //check rocket/ship collisions
         if(this.checkCollision(this.p1Rocket, this.ship03)) {
             this.p1Rocket.reset()
             this.shipExplode(this.ship03)
@@ -157,27 +134,27 @@ class Play extends Phaser.Scene {
         if(this.checkCollision(this.p1Rocket, this.ship0X)) {
             this.p1Rocket.reset()
             this.supershipExplode(this.ship0X)
-            this.p1Streak += 1
+            this.p1Streak += 10
             this.streakLeft.text = "Streak: "+this.p1Streak
         }
 
         //activate laser attack
         if(this.p1Streak >= 10 && Phaser.Input.Keyboard.JustDown(keySPECIAL) && !this.laserFiring) {
             this.laserStatus.text = ""
-            let bonus = this.p1Streak * 100
+            let bonus = (this.p1Streak-10) * 100
             this.p1Streak = 0
             this.streakLeft.text = "Streak: "+this.p1Streak
             this.laserFiring = true
             this.sound.play('sfx-laser')
             let laserSprite = this.add.sprite(game.config.width/2, (game.config.height/2)+17, 'laser')
             laserSprite.anims.play('laser-anim')
-            this.laserClock = this.time.delayedCall(2000 + bonus, () => {
+            this.laserClock = this.time.delayedCall(5000 + bonus, () => {
                 laserSprite.destroy()
                 this.laserFiring = false
             }, null, this)
         }
 
-        //check laser collisions
+        //check ship/laser collisions
         if(this.laserCollision(this.p1laser, this.ship03)) {
             this.shipExplode(this.ship03)
         }
@@ -228,10 +205,9 @@ class Play extends Phaser.Scene {
         ship.alpha = 0
         //create explosion sprite at ship's position
         let boom = this.add.sprite(ship.x, ship.y, 'explosion').setOrigin(0,0);
-        ship.reset()
+        ship.reset()                            //reset before playing animation to prevent collision issues with laser
         boom.anims.play('explode')              //play explode animation
         boom.on('animationcomplete', () => {    //callback after anim completes
-            ship.reset()                        //reset ship position
             ship.alpha = 1                      //make ship visable again
             boom.destroy()                      //remove explosion sprite
         })
@@ -270,12 +246,11 @@ class Play extends Phaser.Scene {
         ship.alpha = 0
         //create explosion sprite at ship's position
         let boom = this.add.sprite(ship.x, ship.y, 'explode-red').setOrigin(0,0);
-        boom.anims.play('explode-red')              //play explode animation
+        boom.anims.play('explode-red')              
         ship.reset()
-        boom.on('animationcomplete', () => {    //callback after anim completes
-                                    //reset ship position
-            ship.alpha = 1                      //make ship visable again
-            boom.destroy()                      //remove explosion sprite
+        boom.on('animationcomplete', () => {    
+            ship.alpha = 1  
+            boom.destroy()
         })
         //score add and text update
         this.p1Score += ship.points

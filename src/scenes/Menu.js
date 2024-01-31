@@ -11,6 +11,8 @@ class Menu extends Phaser.Scene {
         this.load.image('bit', './assets/bit.png')
         this.load.image('red-bit', './assets/red-bit.png')
 
+        this.load.image('decor', './assets/menuDecor.png')
+
         //load spritesheet
         this.load.spritesheet('explosion', './assets/explosion.png', {
             frameWidth: 64,
@@ -81,6 +83,10 @@ class Menu extends Phaser.Scene {
             },
             fixedWidth: 0
         }
+        //background art
+        this.starfield = this.add.tileSprite(0, 0, 640, 480, 'starfield').setOrigin(0, 0)
+        this.decor = this.add.tileSprite(0, 0, 650, 480, 'decor').setOrigin(0,0)
+
         //display menu text
         this.add.text(game.config.width/2, game.config.height/2 - borderUISize*3 - borderPadding*3, 'ROCKET PATROL', menuConfig).setOrigin(0.5)
         this.add.text(game.config.width/2, game.config.height/2, 'Use ←→ arrows to move & (F) to fire', menuConfig).setOrigin(0.5)
@@ -96,6 +102,10 @@ class Menu extends Phaser.Scene {
     }
 
     update() {
+        //
+        this.starfield.tilePositionX -= 1
+
+
         if (Phaser.Input.Keyboard.JustDown(keyLEFT)) {
             //easy mode
             game.settings = {
