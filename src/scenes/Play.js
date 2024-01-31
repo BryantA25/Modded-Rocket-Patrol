@@ -37,6 +37,7 @@ class Play extends Phaser.Scene {
         keyLEFT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT)
         keyRIGHT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT)
         keySPECIAL = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S)
+        keyMENU = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.M)
 
         //initialize score
         this.p1Score = 0
@@ -70,7 +71,7 @@ class Play extends Phaser.Scene {
         scoreConfig.fixedWidth = 0
         this.clock = this.time.delayedCall(game.settings.gameTimer, () => {
             this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5)
-            this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or ← for Menu', scoreConfig).setOrigin(0.5)
+            this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or (M) for Menu', scoreConfig).setOrigin(0.5)
             this.gameOver = true
         }, null, this)
 
@@ -95,7 +96,7 @@ class Play extends Phaser.Scene {
         if(this.gameOver && Phaser.Input.Keyboard.JustDown(keyRESET)) {
             this.scene.restart()
         }
-        if(this.gameOver && Phaser.Input.Keyboard.JustDown(keyLEFT)) {
+        if(this.gameOver && Phaser.Input.Keyboard.JustDown(keyMENU)) {
             this.scene.start("menuScene")
         }
 
@@ -208,6 +209,7 @@ class Play extends Phaser.Scene {
         ship.reset()                            //reset before playing animation to prevent collision issues with laser
         boom.anims.play('explode')              //play explode animation
         boom.on('animationcomplete', () => {    //callback after anim completes
+            ship.reset()
             ship.alpha = 1                      //make ship visable again
             boom.destroy()                      //remove explosion sprite
         })
@@ -249,6 +251,7 @@ class Play extends Phaser.Scene {
         boom.anims.play('explode-red')              
         ship.reset()
         boom.on('animationcomplete', () => {    
+            ship.reset()
             ship.alpha = 1  
             boom.destroy()
         })
