@@ -23,7 +23,7 @@ class Play extends Phaser.Scene {
         this.ship03 = new Spaceship(this, game.config.width, borderUISize*6 + borderPadding*4, 'spaceship', 0, 10).setOrigin(0,0)
 
         //add special spaceship
-        //this.ship0X = new Supership(this, x, y, 'supership', 0, 50).setOrigin(0,0)
+        this.ship0X = new Supership(this, game.config.width + borderUISize*9, borderUISize*4, 'supership', 0, 50).setOrigin(0,0)
 
         //define keys
         keyFIRE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F)
@@ -48,7 +48,7 @@ class Play extends Phaser.Scene {
             },
             fixedWidth: 100
         }
-        this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, this.p1Score, this.scoreConfig)
+        this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, "Score: "+this.p1Score, this.scoreConfig)
 
         //initialize streak
         this.p1Streak = 0
@@ -66,7 +66,14 @@ class Play extends Phaser.Scene {
             },
             fixedWidth: 100
         }
-        this.streakLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*4, this.p1Streak, this.streakConfig)
+        this.streakLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*4, "Streak: "+this.p1Streak, this.streakConfig)
+
+        // streak clock
+        //scoreConfig.fixedWidth = 0
+        //this.streakclock = this.time.delayedCall(10000, () => {
+        //    this.p1Streak = 0
+        //}, null, this)
+        
 
         //GAME OVER flag
         this.gameOver = false
@@ -79,12 +86,7 @@ class Play extends Phaser.Scene {
             this.gameOver = true
         }, null, this)
 
-        // streak clock
-        //scoreConfig.fixedWidth = 0
-        //this.streakclock = this.time.delayedCall(10000, () => {
-        //    this.p1Streak = 0
-        //}, null, this)
-        
+
         //display clock
         let clockConfig = {
             fontFamily: 'Courier',
@@ -98,13 +100,13 @@ class Play extends Phaser.Scene {
             },
             fixedWidth: 100
         }
-        this.clockRight = this.add.text(borderUISize + borderPadding*50, borderUISize + borderPadding*2, this.currentTime, this.clockConfig)
+        this.clockRight = this.add.text(borderUISize + borderPadding*35, borderUISize + borderPadding*2, this.currentTime, this.clockConfig)
     }
 
     update() {
         //Display remaining time
-        //this.currentTime = Phaser.Math.RoundTo(((game.settings.gameTimer - this.time.now) / 1000), 0)
-        this.clockRight.text = this.currentTime
+        this.currentTime = Phaser.Math.RoundTo((game.settings.timeScale - (game.settings.timeScale * this.clock.getProgress())),  0)
+        this.clockRight.text = "Remaining Time: "+this.currentTime
 
         //add time when ship is hit
 
@@ -124,7 +126,7 @@ class Play extends Phaser.Scene {
             this.ship02.update()
             this.ship03.update()
 
-            //this.ship0X.update()
+            this.ship0X.update()
         }
 
         //check collisions
@@ -140,16 +142,17 @@ class Play extends Phaser.Scene {
             this.p1Rocket.reset()
             this.shipExplode(this.ship01)
         }
-
-        if(this.p1Rocket.y <= 0) {
-            this.resetStreak(this.p1Rocket)
+        if(this.checkCollision(this.p1Rocket, this.ship0X)) {
+            this.p1Rocket.reset()
+            this.supershipExplode(this.ship0X)
         }
-        
-        //reset streak
-        if(this.p1Rocket.y <= borderUISize * 3 + borderPadding) {
-            console.log("rocket miss")
+
+        //record miss
+        if(this.p1Rocket.y <= 110) {
             this.p1Streak = 0
-            this.streakLeft.text = 0
+            this.streakLeft.text = "Streak: "+this.p1Streak
+
+            //subtract from remaining time
         }
 
 
@@ -172,11 +175,7 @@ class Play extends Phaser.Scene {
         }
     }
 
-    resetStreak(rocket) {
-            this.p1Streak = 0
-            this.streakLeft = this.p1Streak
-    }
-
+    
     shipExplode(ship) {
         //temporarily hide ship
         ship.alpha = 0
@@ -188,12 +187,24 @@ class Play extends Phaser.Scene {
             ship.alpha = 1                      //make ship visable again
             boom.destroy()                      //remove explosion sprite
         })
+        //particles emition
+        const emitter = this.add.particles(ship.x, ship.y, 'bit', {
+            frame: 0,
+            lifespan: 4000,
+            speed: {min: 150, max: 250},
+            scale: {start: 0.8, end: 0},
+            gravityY: 150,
+            blendMode: 'ADD',
+            emitting: false
+        })
+        emitter.explode(6)
+
         //score add and text update
         this.p1Score += ship.points
-        this.scoreLeft.text = this.p1Score
+        this.scoreLeft.text = "Score: "+this.p1Score
 
         this.p1Streak += 1
-        this.streakLeft.text = this.p1Streak
+        this.streakLeft.text = "Streak: "+this.p1Streak
 
         //sound handling
         var soundNum = Phaser.Math.Between(0,3)
@@ -208,14 +219,15 @@ class Play extends Phaser.Scene {
         }
 
         //add time
-        this.time.now += 3000
+        //this.clock.update(3000)
+
     }
 
     supershipExplode(ship) {
         //temporarily hide ship
         ship.alpha = 0
         //create explosion sprite at ship's position
-        let boom = this.add.sprite(ship.x, ship.y, 'explosion').setOrigin(0,0);
+        let boom = this.add.sprite(ship.x, ship.y, 'explode-red').setOrigin(0,0);
         boom.anims.play('explode-red')              //play explode animation
         boom.on('animationcomplete', () => {    //callback after anim completes
             ship.reset()                        //reset ship position
@@ -224,17 +236,28 @@ class Play extends Phaser.Scene {
         })
         //score add and text update
         this.p1Score += ship.points
-        this.scoreLeft.text = this.p1Score
+        this.scoreLeft.text = "Score: "+this.p1Score
 
         //sound handling
         this.sound.play('sfx-explosionS')
 
+        //particles emition
+        const emitter = this.add.particles(ship.x, ship.y, 'red-bit', {
+            frame: 0,
+            lifespan: 4000,
+            speed: {min: 150, max: 250},
+            scale: {start: 0.8, end: 0},
+            gravityY: 150,
+            blendMode: 'ADD',
+            emitting: false
+        })
+        emitter.explode(10)
 
         //add +1 to streak
-        this.p1Streak += 2
+        this.p1Streak += 1
 
         //add time
-        this.clock += 5000
+        //this.clock += 5000
     }
 
     

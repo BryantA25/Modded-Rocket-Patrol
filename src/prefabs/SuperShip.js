@@ -5,6 +5,7 @@ class Supership extends Phaser.GameObjects.Sprite {
         scene.add.existing(this)        //ad to existing scene
         this.points = pointValue        //store pointValue
         this.moveSpeed = game.settings.supershipSpeed              //spupership speed in pixels/frame
+        this.lanes = [borderUISize*6 + borderPadding*4, borderUISize*5 + borderPadding*2,  borderUISize*4]
     }
 
     update() {
@@ -13,12 +14,13 @@ class Supership extends Phaser.GameObjects.Sprite {
 
         //wrap from left to right edge
         if(this.x <= 0 - this.width) {
-            this.x = game.config.width
+            this.x = game.config.width *10
+            this.y = this.lanes[Phaser.Math.Between(0,2)]
         }
     }
 
     //reset position
     reset() {
-        this.x = game.config.width
+        this.x = game.config.width*10
     }
 }

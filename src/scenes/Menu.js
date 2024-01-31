@@ -8,6 +8,8 @@ class Menu extends Phaser.Scene {
         this.load.image('spaceship', './assets/spaceship.png')
         this.load.image('starfield', './assets/starfield.png')
         this.load.image('supership', './assets/supership.png')
+        this.load.image('bit', './assets/bit.png')
+        this.load.image('red-bit', './assets/red-bit.png')
 
         //load spritesheet
         this.load.spritesheet('explosion', './assets/explosion.png', {
@@ -23,6 +25,14 @@ class Menu extends Phaser.Scene {
             frameHeight: 32,
             startFrame: 0,
             endFrame: 9
+        })
+
+        //load laser spritesheet
+        this.load.spritesheet('laser', './assets/laser.png', {
+            frameWidth: 100,
+            frameHeight: 300,
+            startFrame: 0,
+            endFrame: 1
         })
 
         //load audio
@@ -46,7 +56,7 @@ class Menu extends Phaser.Scene {
         //alt animation
         this.anims.create({
             key: 'explode-red',
-            frames: this.anims.generateFrameNumbers('explode-red', {start: 0, end: 9, first: 0}),
+            frames: this.anims.generateFrameNumbers('explosion-red', {start: 0, end: 9, first: 0}),
             frameRate: 30
         })
 
@@ -79,8 +89,9 @@ class Menu extends Phaser.Scene {
             //easy mode
             game.settings = {
                 spaceshipSpeed: 3,
-                supershipSpeed: 4,
-                gameTimer: 60000
+                supershipSpeed: 5,
+                gameTimer: 60000,
+                timeScale: 60
             }
             this.sound.play('sfx-select')
             this.scene.start('playScene')
@@ -88,8 +99,9 @@ class Menu extends Phaser.Scene {
         if (Phaser.Input.Keyboard.JustDown(keyRIGHT)) {
             game.settings = {
                 spaceshipSpeed: 4,
-                supershipSpeed: 5,
-                gameTimer: 45000
+                supershipSpeed: 6,
+                gameTimer: 45000,
+                timeScale: 45
             }
             this.sound.play('sfx-select')
             this.scene.start('playScene')
