@@ -25,6 +25,12 @@ class Play extends Phaser.Scene {
         //add special spaceship
         this.ship0X = new Supership(this, game.config.width + borderUISize*9, borderUISize*4, 'supership', 0, 50).setOrigin(0,0)
 
+        //add the laser
+        this.p1laser= new Laser(this, game.config.width/2, (game.config.height/2)+17, 'laser', 0)
+        this.p1laser.alpha = 0
+        this.laserFiring = false
+        
+
         //define keys
         keyFIRE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F)
         keyRESET = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R)
@@ -68,12 +74,6 @@ class Play extends Phaser.Scene {
         }
         this.streakLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*4, "Streak: "+this.p1Streak, this.streakConfig)
 
-        // streak clock
-        //scoreConfig.fixedWidth = 0
-        //this.streakclock = this.time.delayedCall(10000, () => {
-        //    this.p1Streak = 0
-        //}, null, this)
-        
 
         //GAME OVER flag
         this.gameOver = false
@@ -101,6 +101,9 @@ class Play extends Phaser.Scene {
             fixedWidth: 100
         }
         this.clockRight = this.add.text(borderUISize + borderPadding*35, borderUISize + borderPadding*2, this.currentTime, this.clockConfig)
+
+        //laser status text
+        this.laserStatus = this.add.text(borderUISize + borderPadding*35, borderUISize + borderPadding*4, "", this.clockConfig)
     }
 
     update() {
@@ -108,7 +111,10 @@ class Play extends Phaser.Scene {
         this.currentTime = Phaser.Math.RoundTo((game.settings.timeScale - (game.settings.timeScale * this.clock.getProgress())),  0)
         this.clockRight.text = "Remaining Time: "+this.currentTime
 
-        //add time when ship is hit
+        //indicate status of laser
+        if(this.p1Streak >= 10 && !this.laserFiring) {
+            this.laserStatus.text = "Laser is Ready!"
+        }
 
         //check key input for restart
         if(this.gameOver && Phaser.Input.Keyboard.JustDown(keyRESET)) {
@@ -133,34 +139,68 @@ class Play extends Phaser.Scene {
         if(this.checkCollision(this.p1Rocket, this.ship03)) {
             this.p1Rocket.reset()
             this.shipExplode(this.ship03)
+            this.p1Streak += 1
+            this.streakLeft.text = "Streak: "+this.p1Streak
         }
         if (this.checkCollision(this.p1Rocket, this.ship02)) {
             this.p1Rocket.reset()
             this.shipExplode(this.ship02)
+            this.p1Streak += 1
+            this.streakLeft.text = "Streak: "+this.p1Streak
         }
         if (this.checkCollision(this.p1Rocket, this.ship01)) {
             this.p1Rocket.reset()
             this.shipExplode(this.ship01)
+            this.p1Streak += 1
+            this.streakLeft.text = "Streak: "+this.p1Streak
         }
         if(this.checkCollision(this.p1Rocket, this.ship0X)) {
             this.p1Rocket.reset()
             this.supershipExplode(this.ship0X)
+            this.p1Streak += 1
+            this.streakLeft.text = "Streak: "+this.p1Streak
+        }
+
+        //activate laser attack
+        if(this.p1Streak >= 10 && Phaser.Input.Keyboard.JustDown(keySPECIAL) && !this.laserFiring) {
+            this.laserStatus.text = ""
+            let bonus = this.p1Streak * 100
+            this.p1Streak = 0
+            this.streakLeft.text = "Streak: "+this.p1Streak
+            this.laserFiring = true
+            this.sound.play('sfx-laser')
+            let laserSprite = this.add.sprite(game.config.width/2, (game.config.height/2)+17, 'laser')
+            laserSprite.anims.play('laser-anim')
+            this.laserClock = this.time.delayedCall(2000 + bonus, () => {
+                laserSprite.destroy()
+                this.laserFiring = false
+            }, null, this)
+        }
+
+        //check laser collisions
+        if(this.laserCollision(this.p1laser, this.ship03)) {
+            this.shipExplode(this.ship03)
+        }
+        if(this.laserCollision(this.p1laser, this.ship02)) {
+            this.shipExplode(this.ship02)
+        }
+        if(this.laserCollision(this.p1laser, this.ship01)) {
+            this.shipExplode(this.ship01)
+        }
+        if(this.laserCollision(this.p1laser, this.ship0X)) {
+            this.supershipExplode(this.ship0X)
+            
         }
 
         //record miss
         if(this.p1Rocket.y <= 110) {
             this.p1Streak = 0
             this.streakLeft.text = "Streak: "+this.p1Streak
-
-            //subtract from remaining time
+            this.laserStatus.text = ""
         }
 
 
-        //activate special attack
-        if(this.p1Streak >= 7 && Phaser.Input.Keyboard.JustDown(keySPECIAL)) {
-            this.p1Streak -= 7
-
-        }
+        
     }
 
     checkCollision(rocket, ship) {
@@ -175,12 +215,20 @@ class Play extends Phaser.Scene {
         }
     }
 
+    laserCollision(laser, ship) {
+        if (ship.x < laser.x && ship.x > laser.x-20 && this.laserFiring) {
+            return true
+        }else {
+            return false
+        }
+    }
     
     shipExplode(ship) {
         //temporarily hide ship
         ship.alpha = 0
         //create explosion sprite at ship's position
         let boom = this.add.sprite(ship.x, ship.y, 'explosion').setOrigin(0,0);
+        ship.reset()
         boom.anims.play('explode')              //play explode animation
         boom.on('animationcomplete', () => {    //callback after anim completes
             ship.reset()                        //reset ship position
@@ -188,7 +236,7 @@ class Play extends Phaser.Scene {
             boom.destroy()                      //remove explosion sprite
         })
         //particles emition
-        const emitter = this.add.particles(ship.x, ship.y, 'bit', {
+        const emitter = this.add.particles(boom.x, boom.y, 'bit', {
             frame: 0,
             lifespan: 4000,
             speed: {min: 150, max: 250},
@@ -202,9 +250,7 @@ class Play extends Phaser.Scene {
         //score add and text update
         this.p1Score += ship.points
         this.scoreLeft.text = "Score: "+this.p1Score
-
-        this.p1Streak += 1
-        this.streakLeft.text = "Streak: "+this.p1Streak
+        
 
         //sound handling
         var soundNum = Phaser.Math.Between(0,3)
@@ -217,10 +263,6 @@ class Play extends Phaser.Scene {
         } else if (soundNum == 3) {
             this.sound.play('sfx-explosion3')
         }
-
-        //add time
-        //this.clock.update(3000)
-
     }
 
     supershipExplode(ship) {
@@ -229,8 +271,9 @@ class Play extends Phaser.Scene {
         //create explosion sprite at ship's position
         let boom = this.add.sprite(ship.x, ship.y, 'explode-red').setOrigin(0,0);
         boom.anims.play('explode-red')              //play explode animation
+        ship.reset()
         boom.on('animationcomplete', () => {    //callback after anim completes
-            ship.reset()                        //reset ship position
+                                    //reset ship position
             ship.alpha = 1                      //make ship visable again
             boom.destroy()                      //remove explosion sprite
         })
@@ -242,7 +285,7 @@ class Play extends Phaser.Scene {
         this.sound.play('sfx-explosionS')
 
         //particles emition
-        const emitter = this.add.particles(ship.x, ship.y, 'red-bit', {
+        const emitter = this.add.particles(boom.x, boom.y, 'red-bit', {
             frame: 0,
             lifespan: 4000,
             speed: {min: 150, max: 250},
@@ -252,13 +295,5 @@ class Play extends Phaser.Scene {
             emitting: false
         })
         emitter.explode(10)
-
-        //add +1 to streak
-        this.p1Streak += 1
-
-        //add time
-        //this.clock += 5000
     }
-
-    
 }

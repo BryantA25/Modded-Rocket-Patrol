@@ -32,7 +32,7 @@ class Menu extends Phaser.Scene {
             frameWidth: 100,
             frameHeight: 300,
             startFrame: 0,
-            endFrame: 1
+            endFrame: 2
         })
 
         //load audio
@@ -43,6 +43,7 @@ class Menu extends Phaser.Scene {
         this.load.audio('sfx-explosion3', './assets/sfx-explosion3.wav')
         this.load.audio('sfx-explosionS', './assets/sfx-explosionS.wav')
         this.load.audio('sfx-shot', './assets/sfx-shot.wav')
+        this.load.audio('sfx-laser', './assets/sfx-laser.wav')
     }
 
     create() {
@@ -60,6 +61,14 @@ class Menu extends Phaser.Scene {
             frameRate: 30
         })
 
+        //laser animation
+        this.anims.create({
+            key: 'laser-anim',
+            frames: this.anims.generateFrameNumbers('laser', {start: 0, end: 2, first: 0}),
+            frameRate: 12,
+            repeat:-1
+        })
+
         let menuConfig = {
             fontFamily: 'Courier',
             fontSize: '28px',
@@ -73,11 +82,13 @@ class Menu extends Phaser.Scene {
             fixedWidth: 0
         }
         //display menu text
-        this.add.text(game.config.width/2, game.config.height/2 - borderUISize - borderPadding, 'ROCKET PATROL', menuConfig).setOrigin(0.5)
+        this.add.text(game.config.width/2, game.config.height/2 - borderUISize*3 - borderPadding*3, 'ROCKET PATROL', menuConfig).setOrigin(0.5)
         this.add.text(game.config.width/2, game.config.height/2, 'Use ←→ arrows to move & (F) to fire', menuConfig).setOrigin(0.5)
+        this.add.text(game.config.width/2, game.config.height/2 + borderUISize + borderPadding, 'When your streak is high enough,', menuConfig).setOrigin(0.5)
+        this.add.text(game.config.width/2, game.config.height/2 + borderUISize*2 + borderPadding*2, 'Press (S) to acivate the laser', menuConfig).setOrigin(0.5)
         menuConfig.backgroundColor = '#00FF00'
         menuConfig.color = '#000'
-        this.add.text(game.config.width/2, game.config.height/2 + borderUISize + borderPadding, 'Press ← for Novice or → for Expert', menuConfig).setOrigin(0.5)
+        this.add.text(game.config.width/2, game.config.height/2 + borderUISize*4 + borderPadding*4, 'Press ← for Novice or → for Expert', menuConfig).setOrigin(0.5)
 
         //define keys
         keyLEFT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT)
