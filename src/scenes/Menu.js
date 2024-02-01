@@ -88,7 +88,7 @@ class Menu extends Phaser.Scene {
         this.decor = this.add.tileSprite(0, 0, 650, 480, 'decor').setOrigin(0,0)
 
         //display menu text
-        this.add.text(game.config.width/2, game.config.height/2 - borderUISize*3 - borderPadding*3, 'ROCKET PATROL', menuConfig).setOrigin(0.5)
+        this.add.text(game.config.width/2, game.config.height/2 - borderUISize*3 - borderPadding*3, 'ULTRA-PATROL', menuConfig).setOrigin(0.5)
         this.add.text(game.config.width/2, game.config.height/2, 'Use ←→ arrows to move & (F) to fire', menuConfig).setOrigin(0.5)
         this.add.text(game.config.width/2, game.config.height/2 + borderUISize + borderPadding, 'When your streak is high enough,', menuConfig).setOrigin(0.5)
         this.add.text(game.config.width/2, game.config.height/2 + borderUISize*2 + borderPadding*2, 'Press (S) to acivate the laser', menuConfig).setOrigin(0.5)
