@@ -214,7 +214,6 @@ class Play extends Phaser.Scene {
             boom.destroy()                      //remove explosion sprite
         })
         //particles emition
-        //particle emitter code from https://phaser.io/examples/v3/view/game-objects/particle-emitter/explode-emitter
         const emitter = this.add.particles(boom.x, boom.y, 'bit', {
             frame: 0,
             lifespan: 3000,
